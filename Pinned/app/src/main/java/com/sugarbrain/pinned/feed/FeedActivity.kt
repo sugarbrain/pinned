@@ -1,22 +1,23 @@
 package com.sugarbrain.pinned.feed
 
+import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.provider.MediaStore
 import android.view.View
 import android.widget.EditText
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.sugarbrain.pinned.PostsAdapter
+import android.widget.Toast
 import com.sugarbrain.pinned.R
 import com.sugarbrain.pinned.models.Post
 import com.sugarbrain.pinned.search.SearchActivity
 import kotlinx.android.synthetic.main.activity_feed.*
-
-private const val TAG = "FeedActivity"
 
 class FeedActivity : AppCompatActivity() {
 
@@ -31,6 +32,7 @@ class FeedActivity : AppCompatActivity() {
         setContentView(R.layout.activity_feed)
         createSearchEditTextListener()
         loadPosts()
+        createCameraButtonListener()
     }
 
     private fun loadPosts() {
@@ -60,6 +62,27 @@ class FeedActivity : AppCompatActivity() {
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == IMAGE_CAPTURE_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                val image = data?.extras?.get("data") as Bitmap
+                Log.i(TAG, "image captured -> $image")
+            } else {
+                Toast.makeText(this, "It was not possible to capture the photo", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun createCameraButtonListener() {
+        btCamera.setOnClickListener {
+            val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            if (cameraIntent.resolveActivity(packageManager) != null) {
+                startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE)
+            }
+        }
+    }
+
     private fun createSearchEditTextListener() {
         searchEditText = findViewById(R.id.header_search_edit_text)
         searchEditText.setOnFocusChangeListener { _: View, b: Boolean ->
@@ -67,5 +90,10 @@ class FeedActivity : AppCompatActivity() {
             searchIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
             if (b) startActivity(searchIntent);
         }
+    }
+
+    companion object {
+        var IMAGE_CAPTURE_CODE = 666
+        var TAG = "FeedActivity"
     }
 }

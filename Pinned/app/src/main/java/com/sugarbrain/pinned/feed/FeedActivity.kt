@@ -17,6 +17,7 @@ import android.widget.Toast
 import com.sugarbrain.pinned.R
 import com.sugarbrain.pinned.models.Post
 import com.sugarbrain.pinned.search.SearchActivity
+import com.sugarbrain.pinned.submit.SubmitActivity
 import kotlinx.android.synthetic.main.activity_feed.*
 
 class FeedActivity : AppCompatActivity() {
@@ -68,6 +69,9 @@ class FeedActivity : AppCompatActivity() {
             if (resultCode == Activity.RESULT_OK) {
                 val image = data?.extras?.get("data") as Bitmap
                 Log.i(TAG, "image captured -> $image")
+                val submitIntent = Intent(this, SubmitActivity::class.java);
+                submitIntent.putExtra(SubmitActivity.SUBMIT_IMAGE_KEY, image)
+                startActivity(submitIntent)
             } else {
                 Toast.makeText(this, "It was not possible to capture the photo", Toast.LENGTH_SHORT).show()
             }

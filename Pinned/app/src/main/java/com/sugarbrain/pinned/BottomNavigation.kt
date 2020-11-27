@@ -6,6 +6,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import android.content.Intent
 import android.view.LayoutInflater
 import com.sugarbrain.pinned.feed.FeedActivity
+import com.sugarbrain.pinned.submit.PreSubmitActivity
 import kotlinx.android.synthetic.main.bottom_navigation.view.*
 
 class BottomNavigation(context: Context, attrs: AttributeSet?): ConstraintLayout(context, attrs) {
@@ -22,7 +23,8 @@ class BottomNavigation(context: Context, attrs: AttributeSet?): ConstraintLayout
                     true
                 }
                 R.id.bottom_checkin -> {
-                    goToCheckInActivity()
+                    goToPreSubmitActivity()
+                    bottomNavigation.selectedItemId = R.id.bottom_home
                     true
                 }
                 else -> false
@@ -36,7 +38,7 @@ class BottomNavigation(context: Context, attrs: AttributeSet?): ConstraintLayout
         context.startActivity(Intent(context, FeedActivity::class.java))
     }
 
-    private fun goToCheckInActivity() {
-//        context.startActivity(Intent(context, SubmitActivity::class.java))
+    private fun goToPreSubmitActivity() {
+        context.startActivity(Intent(context, PreSubmitActivity::class.java))
     }
 }

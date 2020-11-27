@@ -17,6 +17,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".search.SearchActivity" />
+        <activity android:name=".profile.ProfileActivity" />
         <activity android:name=".feed.FeedActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>

@@ -5,4 +5,5 @@
     <string name="login_login_button">Entrar</string>
     <string name="login_email_hint">seu@email.com</string>
     <string name="login_password_hint">Sua senha</string>
+    <string name="post_description"><b>\@%1s</b> %2s</string>
 </resources>

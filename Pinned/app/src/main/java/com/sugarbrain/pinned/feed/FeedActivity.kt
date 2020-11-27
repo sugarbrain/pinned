@@ -30,14 +30,12 @@ class FeedActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_feed)
         createSearchEditTextListener()
+        loadPosts()
+    }
 
-
+    private fun loadPosts() {
         firestoreDb = FirebaseFirestore.getInstance()
-
-        // Create the layout file which represents one post - DONE
-        // Create data source - DONE
         posts = mutableListOf()
-        // Create the adapter
         adapter = PostsAdapter(this, posts)
 
         // Bind the adapter and layout manager to the RV

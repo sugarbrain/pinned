@@ -32,7 +32,6 @@
             android:id="@+id/profile_image"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@mipmap/marquinhos"
             app:civ_border_color="#FFFFFF"
             app:civ_border_width="3dp"
             app:layout_constraintBottom_toBottomOf="parent"

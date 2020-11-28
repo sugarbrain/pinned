@@ -11,12 +11,26 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import com.google.android.gms.common.api.ApiException
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPhotoRequest
+import com.google.android.libraries.places.api.net.FetchPhotoResponse
+import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.sugarbrain.pinned.R
+import kotlinx.android.synthetic.main.activity_pre_submit.*
 
 class PreSubmitActivity : AppCompatActivity() {
+    private lateinit var placesClient: PlacesClient
+    private var currentPlace: Place? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pre_submit)
+
+        Places.initialize(this, "AIzaSyBTvsa8eN9hEzwfeFHdXE2xt-G2oeJVxgk")
+        placesClient = Places.createClient(this)
 
         setupLocationAccess()
         setupCameraAccess()
@@ -54,13 +68,65 @@ class PreSubmitActivity : AppCompatActivity() {
 
     private fun getNearestPlace() {
         Log.i(TAG, "getNearestPlace")
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+            val placeFields: List<Place.Field> = listOf(
+                Place.Field.NAME,
+                Place.Field.PHOTO_METADATAS,
+                Place.Field.ADDRESS
+            )
+            val request: FindCurrentPlaceRequest = FindCurrentPlaceRequest.newInstance(placeFields)
+            val placeResponse = placesClient.findCurrentPlace(request)
+
+            placeResponse.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    currentPlace = task.result?.placeLikelihoods?.first()?.place
+                    updateLayout()
+                } else {
+                    val exception = task.exception
+                    if (exception is ApiException) {
+                        Log.e(TAG, "Place not found: ${exception.statusCode}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateLayout() {
+        tvPlaceName.text = currentPlace?.name
+        tvAddress.text = currentPlace?.address
+        val metada = currentPlace?.photoMetadatas
+        if (metada == null || metada.isEmpty()) {
+            Log.w(TAG, "No photo metadata.")
+            return
+        }
+
+        val photoMetadata = metada.first()
+
+        val photoRequest = FetchPhotoRequest.builder(photoMetadata)
+            .setMaxWidth(200) // Optional.
+            .setMaxHeight(200) // Optional.
+            .build()
+
+        placesClient.fetchPhoto(photoRequest)
+            .addOnSuccessListener { fetchPhotoResponse: FetchPhotoResponse ->
+                val bitmap = fetchPhotoResponse.bitmap
+                placeImage.setImageBitmap(bitmap)
+            }.addOnFailureListener { exception: Exception ->
+                if (exception is ApiException) {
+                    Log.e(TAG, "Place not found: " + exception.message)
+                }
+            }
     }
 
     private fun setupCameraAccess() {
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        cameraButton.setOnClickListener {
+            val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 
-        if (cameraIntent.resolveActivity(packageManager) != null) {
-            startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE)
+            if (cameraIntent.resolveActivity(packageManager) != null) {
+                startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE)
+            }
         }
     }
 

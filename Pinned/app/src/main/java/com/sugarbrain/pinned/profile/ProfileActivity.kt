@@ -1,9 +1,9 @@
 package com.sugarbrain.pinned.profile
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
@@ -12,6 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.sugarbrain.pinned.PostsAdapter
 import com.sugarbrain.pinned.R
+import com.sugarbrain.pinned.login.LoginActivity
 import com.sugarbrain.pinned.models.Post
 import com.sugarbrain.pinned.models.User
 import com.sugarbrain.pinned.submit.SubmitActivity
@@ -85,6 +86,11 @@ class ProfileActivity : AppCompatActivity() {
     private fun enableLogout() {
         if (currentUser == displayUser) {
             ivLogout.isVisible = true
+            ivLogout.setOnClickListener {
+                FirebaseAuth.getInstance().signOut()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
         }
     }
 

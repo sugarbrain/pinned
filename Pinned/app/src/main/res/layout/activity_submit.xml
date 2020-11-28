@@ -77,7 +77,7 @@
         android:id="@+id/textView5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Estou em outro lugar"
+        android:text="@string/at_other_place"
         android:textColor="#2D9CDB"
         android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -88,16 +88,29 @@
         app:layout_constraintVertical_bias="0.012" />
 
     <EditText
-        android:id="@+id/editTextTextPersonName"
-        android:layout_width="358dp"
-        android:layout_height="467dp"
-        android:ems="10"
-        android:hint="Insira uma descricao..."
-        android:inputType="text"
-        android:gravity="top"
+        android:id="@+id/etSubmitDescription"
+        android:layout_width="357dp"
+        android:layout_height="167dp"
         android:background="@android:color/transparent"
+        android:ems="10"
+        android:gravity="top"
+        android:hint="@string/insert_description"
+        android:inputType="text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.491"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView5"
+        app:layout_constraintVertical_bias="0.138" />
+
+    <Button
+        android:id="@+id/btSubmit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/submit"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView5" />
+        app:layout_constraintTop_toBottomOf="@+id/etSubmitDescription" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,21 +8,30 @@ import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.util.Log
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.firestore.FirebaseFirestore
 import com.sugarbrain.pinned.R
 import com.sugarbrain.pinned.feed.FeedActivity
+import com.sugarbrain.pinned.models.Post
+import com.sugarbrain.pinned.models.User
 import kotlinx.android.synthetic.main.activity_search.*
 
 
 class SearchActivity : AppCompatActivity() {
 
     private lateinit var searchEditText: EditText;
-    private lateinit var contacts: MutableList<Contact>
+    private lateinit var contacts: MutableList<User>
     private lateinit var adapter: ContactsAdapter
+    private lateinit var firestoreDb: FirebaseFirestore
+
+    private var allContactPhones: MutableList<String> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +46,16 @@ class SearchActivity : AppCompatActivity() {
                 PERMISSIONS_REQUEST_READ_CONTACTS
             );
         } else {
-            loadContacts()
+            displayContacts()
+        }
+
+        searchEditText.addTextChangedListener {text ->
+            if (!text.isNullOrEmpty()) {
+                contacts = contacts.filter {
+                    it.name.toLowerCase().startsWith(text.toString().toLowerCase())
+                }.toMutableList()
+                adapter.notifyDataSetChanged()
+            }
         }
     }
 
@@ -49,11 +67,36 @@ class SearchActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSIONS_REQUEST_READ_CONTACTS) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadContacts()
+                displayContacts()
             } else {
                 Toast.makeText(this, "Unable to get contacts permission", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this, FeedActivity::class.java))
             }
+        }
+    }
+
+    private fun displayContacts() {
+        firestoreDb = FirebaseFirestore.getInstance()
+        val usersReference = firestoreDb
+            .collection("users")
+
+        usersReference.addSnapshotListener { snapshot, exception ->
+            if (exception != null || snapshot == null) {
+                Log.e(TAG, "Exception when querying users", exception)
+                return@addSnapshotListener
+            }
+
+            val users = snapshot.toObjects(User::class.java)
+
+            loadContacts()
+
+            users.filter {
+                allContactPhones.contains(it.phone)
+            }.forEach {
+                contacts.add(it)
+            }
+
+            adapter.notifyDataSetChanged()
         }
     }
 
@@ -80,11 +123,26 @@ class SearchActivity : AppCompatActivity() {
             while (cursor.moveToNext()) {
                 val contactName =
                     cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
-                if (contactName != null) {
-                    contacts.add(Contact(contactName))
+                val contactId =
+                    cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID))
+                val phones =
+                    contentResolver.query(
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                        null,
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + contactId,
+                        null,
+                        null
+                    );
+                while (phones!!.moveToNext()) {
+                    var number =
+                        phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                    number = number.replace("+", "")
+                    number = number.replace("-", "")
+                    number = number.replace(" ", "")
+                    Log.i(TAG, number)
+                    allContactPhones.add(number)
                 }
             }
-            adapter.notifyDataSetChanged()
         } else {
             Toast.makeText(this, "It was not possible to load the contacts", Toast.LENGTH_SHORT)
                 .show()
@@ -92,6 +150,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     companion object {
+        const val TAG = "SearchActivity"
         const val PERMISSIONS_REQUEST_READ_CONTACTS = 123;
     }
 }

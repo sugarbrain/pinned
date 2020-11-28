@@ -32,7 +32,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun setDisplayUser() {
-        displayUser = intent.extras?.get(DISPLAY_USER_KEY) as User? ?: currentUser
+        displayUser = intent.getSerializableExtra(DISPLAY_USER_KEY) as User? ?: currentUser
     }
 
     private fun loadPosts() {

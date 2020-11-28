@@ -5,6 +5,9 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
+    <uses-permission
+        android:name="android.permission.READ_CONTACTS"
+        android:required="true" />
 
     <application
         android:allowBackup="true"

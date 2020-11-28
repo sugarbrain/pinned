@@ -6,6 +6,6 @@ data class User(
     var name: String = "",
     var arroba: String = "",
 
-    @get:PropertyName("avatar_url") @set:PropertyName("image_url")
+    @get:PropertyName("avatar_url") @set:PropertyName("avatar_url")
     var avatarUrl: String = ""
 )

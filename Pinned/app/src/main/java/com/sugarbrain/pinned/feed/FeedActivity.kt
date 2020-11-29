@@ -28,6 +28,11 @@ class FeedActivity : AppCompatActivity() {
         loadPosts()
     }
 
+    override fun onResume() {
+        super.onResume()
+        searchEditText.clearFocus()
+    }
+
     private fun loadPosts() {
         firestoreDb = FirebaseFirestore.getInstance()
         posts = mutableListOf()

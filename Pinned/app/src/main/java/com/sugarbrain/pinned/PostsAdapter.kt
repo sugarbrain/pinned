@@ -35,6 +35,7 @@ class PostsAdapter (val context: Context, val posts: List<Post>) :
                 post.description
             )
 
+            itemView.localeText.text = post.place?.name
             itemView.tvDescription.text = desc
             itemView.tvDate.text = DateUtils.getRelativeTimeSpanString(post.date)
             Glide.with(context).load(post.imageUrl).into(itemView.imageView)

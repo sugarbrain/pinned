@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.sugarbrain.pinned"
-        minSdkVersion 16
+        minSdkVersion 28
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -43,4 +43,5 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
     implementation 'com.android.support:design:26.1.0'
+    implementation 'com.google.android.libraries.places:places:2.4.0'
 }

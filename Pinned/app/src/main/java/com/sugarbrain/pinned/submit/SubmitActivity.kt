@@ -12,6 +12,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.sugarbrain.pinned.R
 import com.sugarbrain.pinned.feed.FeedActivity
+import com.sugarbrain.pinned.models.Place
 import com.sugarbrain.pinned.models.Post
 import com.sugarbrain.pinned.models.User
 import kotlinx.android.synthetic.main.activity_submit.*
@@ -22,17 +23,27 @@ class SubmitActivity : AppCompatActivity() {
     private lateinit var firestore: FirebaseFirestore
     private lateinit var storageReference: StorageReference
     private var currentUser: User? = null
+    private var place: Place? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_submit)
         setSubmitImage()
+        setPlace()
         setCurrentUser()
         btSubmit.setOnClickListener { handleSubmitButtonClick() }
     }
 
     private fun setSubmitImage() {
         ivSubmitImage.setImageBitmap(getCapturedImage())
+    }
+
+    private fun setPlace() {
+        place = intent.extras?.get(PLACE_KEY) as Place?
+        if (place != null) {
+            tvPlaceName.text = place?.name
+            tvPlaceAddress.text = place?.address
+        }
     }
 
     private fun setCurrentUser() {
@@ -81,7 +92,8 @@ class SubmitActivity : AppCompatActivity() {
                     etSubmitDescription.text.toString(),
                     System.currentTimeMillis(),
                     currentUser,
-                    it.result.toString()
+                    it.result.toString(),
+                    place
                 )
                 firestore.collection("posts").add(post)
             }
@@ -111,5 +123,6 @@ class SubmitActivity : AppCompatActivity() {
     companion object {
         val TAG = "SubmitActivity"
         val SUBMIT_IMAGE_KEY = "SUBMIT_IMAGE"
+        val PLACE_KEY = "SUBMIT_PLACE"
     }
 }

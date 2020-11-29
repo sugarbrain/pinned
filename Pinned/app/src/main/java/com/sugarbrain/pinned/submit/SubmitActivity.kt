@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -20,7 +21,7 @@ import java.io.ByteArrayOutputStream
 
 class SubmitActivity : AppCompatActivity() {
 
-    private lateinit var firestore: FirebaseFirestore
+    private lateinit var firestoreDb: FirebaseFirestore
     private lateinit var storageReference: StorageReference
     private var currentUser: User? = null
     private var place: Place? = null
@@ -47,12 +48,13 @@ class SubmitActivity : AppCompatActivity() {
     }
 
     private fun setCurrentUser() {
-        firestore = FirebaseFirestore.getInstance()
-        firestore.collection("users")
+        firestoreDb = FirebaseFirestore.getInstance()
+        firestoreDb.collection("users")
             .document(FirebaseAuth.getInstance().currentUser?.uid as String)
             .get()
             .addOnSuccessListener { userSnapshot ->
                 currentUser = userSnapshot.toObject(User::class.java)
+                Glide.with(this).load(currentUser!!.avatarUrl).into(profile_image)
             }
             .addOnFailureListener { exception ->
                 Log.i(TAG, "Fail to get current user", exception)
@@ -95,7 +97,7 @@ class SubmitActivity : AppCompatActivity() {
                     it.result.toString(),
                     place
                 )
-                firestore.collection("posts").add(post)
+                firestoreDb.collection("posts").add(post)
             }
             .addOnCompleteListener {
                 btSubmit.isEnabled = true

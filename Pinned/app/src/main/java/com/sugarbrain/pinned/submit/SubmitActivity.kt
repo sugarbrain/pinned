@@ -111,5 +111,6 @@ class SubmitActivity : AppCompatActivity() {
     companion object {
         val TAG = "SubmitActivity"
         val SUBMIT_IMAGE_KEY = "SUBMIT_IMAGE"
+        val PLACE_KEY = "SUBMIT_PLACE"
     }
 }

@@ -14,23 +14,30 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.PlaceLikelihood
 import com.google.android.libraries.places.api.net.FetchPhotoRequest
 import com.google.android.libraries.places.api.net.FetchPhotoResponse
 import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.firebase.firestore.FirebaseFirestore
 import com.sugarbrain.pinned.R
 import kotlinx.android.synthetic.main.activity_pre_submit.*
 
 class PreSubmitActivity : AppCompatActivity() {
     private lateinit var placesClient: PlacesClient
     private var currentPlace: Place? = null
+    private var nearPlaces: Array<PlaceLikelihood>? = null
+    private lateinit var firestore: FirebaseFirestore
+    private lateinit var image: Bitmap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pre_submit)
 
-        Places.initialize(this, "AIzaSyBTvsa8eN9hEzwfeFHdXE2xt-G2oeJVxgk")
+        Places.initialize(this, API_KEY)
         placesClient = Places.createClient(this)
+
+        firestore = FirebaseFirestore.getInstance()
 
         setupLocationAccess()
         setupCameraAccess()
@@ -72,6 +79,7 @@ class PreSubmitActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
             val placeFields: List<Place.Field> = listOf(
+                Place.Field.ID,
                 Place.Field.NAME,
                 Place.Field.PHOTO_METADATAS,
                 Place.Field.ADDRESS
@@ -81,7 +89,9 @@ class PreSubmitActivity : AppCompatActivity() {
 
             placeResponse.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    currentPlace = task.result?.placeLikelihoods?.first()?.place
+                    nearPlaces = task.result?.placeLikelihoods?.toTypedArray()
+                    currentPlace = nearPlaces?.first()?.place
+
                     updateLayout()
                 } else {
                     val exception = task.exception
@@ -96,6 +106,7 @@ class PreSubmitActivity : AppCompatActivity() {
     private fun updateLayout() {
         tvPlaceName.text = currentPlace?.name
         tvAddress.text = currentPlace?.address
+
         val metada = currentPlace?.photoMetadatas
         if (metada == null || metada.isEmpty()) {
             Log.w(TAG, "No photo metadata.")
@@ -104,10 +115,7 @@ class PreSubmitActivity : AppCompatActivity() {
 
         val photoMetadata = metada.first()
 
-        val photoRequest = FetchPhotoRequest.builder(photoMetadata)
-            .setMaxWidth(200) // Optional.
-            .setMaxHeight(200) // Optional.
-            .build()
+        val photoRequest = FetchPhotoRequest.builder(photoMetadata).build()
 
         placesClient.fetchPhoto(photoRequest)
             .addOnSuccessListener { fetchPhotoResponse: FetchPhotoResponse ->
@@ -132,13 +140,13 @@ class PreSubmitActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
         if (requestCode == IMAGE_CAPTURE_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-                val image = data?.extras?.get("data") as Bitmap
+                image = data?.extras?.get("data") as Bitmap
                 Log.i(TAG, "image captured -> $image")
-                val submitIntent = Intent(this, SubmitActivity::class.java);
-                submitIntent.putExtra(SubmitActivity.SUBMIT_IMAGE_KEY, image)
-                startActivity(submitIntent)
+
+                prepareSubmit()
             } else {
                 Toast.makeText(this, "It was not possible to capture the photo", Toast.LENGTH_SHORT).show()
             }
@@ -146,9 +154,48 @@ class PreSubmitActivity : AppCompatActivity() {
         }
     }
 
+    private fun prepareSubmit() {
+        if (currentPlace != null) {
+            firestore.collection("places")
+                .document(currentPlace?.id ?: "")
+                .get()
+                .addOnCompleteListener {task ->
+                    var place: com.sugarbrain.pinned.models.Place? = null
+
+                    if (task.isSuccessful) {
+                        val placeSnapshot = task.result
+
+                        if (placeSnapshot.exists()) {
+                            place = placeSnapshot.toObject(com.sugarbrain.pinned.models.Place::class.java)
+                        } else {
+                            place = com.sugarbrain.pinned.models.Place(
+                                currentPlace?.name ?: "",
+                                currentPlace?.address ?: "",
+                                currentPlace?.id ?: ""
+                            )
+
+                            firestore
+                                .collection("places")
+                                .document(currentPlace?.id as String)
+                                .set(place)
+                        }
+
+                        val submitIntent = Intent(this, SubmitActivity::class.java);
+                        submitIntent.putExtra(SubmitActivity.SUBMIT_IMAGE_KEY, image)
+                        submitIntent.putExtra(SubmitActivity.PLACE_KEY, place)
+
+                        startActivity(submitIntent)
+                    } else {
+                        Log.i(SubmitActivity.TAG, "Fail to get current user", task.exception)
+                    }
+                }
+        }
+    }
+
     companion object {
-        var IMAGE_CAPTURE_CODE = 666
-        var TAG = "PreSubmitActivity"
-        var LOCATION_REQUEST_CODE = 123
+        val IMAGE_CAPTURE_CODE = 666
+        val TAG = "PreSubmitActivity"
+        val LOCATION_REQUEST_CODE = 123
+        val API_KEY = "AIzaSyBTvsa8eN9hEzwfeFHdXE2xt-G2oeJVxgk"
     }
 }

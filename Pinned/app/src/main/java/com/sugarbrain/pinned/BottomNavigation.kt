@@ -10,7 +10,7 @@ import com.sugarbrain.pinned.feed.FeedActivity
 import com.sugarbrain.pinned.submit.PreSubmitActivity
 import kotlinx.android.synthetic.main.bottom_navigation.view.*
 
-class BottomNavigation(context: Context, attrs: AttributeSet?): ConstraintLayout(context, attrs) {
+class BottomNavigation(context: Context, attrs: AttributeSet?) : ConstraintLayout(context, attrs) {
     init {
         LayoutInflater.from(context).inflate(R.layout.bottom_navigation, this, true)
         setupNavigation()
@@ -18,7 +18,7 @@ class BottomNavigation(context: Context, attrs: AttributeSet?): ConstraintLayout
 
     private fun setupNavigation() {
         bottomNavigation.setOnNavigationItemSelectedListener { item ->
-            when(item.itemId) {
+            when (item.itemId) {
                 R.id.bottom_home -> {
                     goToFeedActivity()
                     true
@@ -32,7 +32,17 @@ class BottomNavigation(context: Context, attrs: AttributeSet?): ConstraintLayout
             }
         }
 
-        bottomNavigation.setOnNavigationItemReselectedListener { }
+        bottomNavigation.setOnNavigationItemReselectedListener { item ->
+            when (item.itemId) {
+                R.id.bottom_home -> {
+                    goToFeedActivity()
+                }
+                R.id.bottom_checkin -> {
+                    goToPreSubmitActivity()
+                    bottomNavigation.selectedItemId = R.id.bottom_home
+                }
+            }
+        }
     }
 
     private fun goToFeedActivity() {
@@ -44,6 +54,10 @@ class BottomNavigation(context: Context, attrs: AttributeSet?): ConstraintLayout
     }
 
     private fun goToPreSubmitActivity() {
-        context.startActivity(Intent(context, PreSubmitActivity::class.java))
+        val currentActivity = context as Activity
+        val preSubmitActivityClass = PreSubmitActivity::class.java
+        if (currentActivity::class.java != preSubmitActivityClass) {
+            context.startActivity(Intent(context, preSubmitActivityClass))
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.sugarbrain.pinned
 
+import android.app.Activity
 import android.content.Context
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -35,7 +36,11 @@ class BottomNavigation(context: Context, attrs: AttributeSet?): ConstraintLayout
     }
 
     private fun goToFeedActivity() {
-        context.startActivity(Intent(context, FeedActivity::class.java))
+        val currentActivity = context as Activity
+        val feedActivityClass = FeedActivity::class.java
+        if (currentActivity::class.java != feedActivityClass) {
+            context.startActivity(Intent(context, feedActivityClass))
+        }
     }
 
     private fun goToPreSubmitActivity() {

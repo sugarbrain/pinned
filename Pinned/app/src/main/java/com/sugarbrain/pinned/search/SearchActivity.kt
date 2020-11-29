@@ -158,6 +158,7 @@ class SearchActivity : AppCompatActivity() {
                     number = number.replace("+", "")
                     number = number.replace("-", "")
                     number = number.replace(" ", "")
+                    number = number.takeLast(8)
                     Log.i(TAG, number)
                     allContactPhones.add(number)
                 }

@@ -10,4 +10,5 @@
     <string name="insert_description">Insira uma descricao...</string>
     <string name="at_other_place">Estou em outro lugar</string>
     <string name="submit">Postar</string>
+    <string name="new_checkin">Novo check-in</string>
 </resources>
